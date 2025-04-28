@@ -1,10 +1,11 @@
-import React, { useRef } from 'react';
-import { Card, Radio, Checkbox, Typography, Space, Grid, Button, Alert, Progress } from 'antd';
+import React, { useRef, useContext } from 'react';
+import { Card, Radio, Checkbox, Typography, Space, Grid, Button, Alert, Progress, ConfigProvider, theme } from 'antd';
 
 const { Title, Paragraph, Text } = Typography;
 const { Group: RadioGroup } = Radio;
 const { Group: CheckboxGroup } = Checkbox;
 const { useBreakpoint } = Grid;
+const { useToken } = theme;
 
 export enum QuestionType {
   SINGLE_CHOICE = 'single',
@@ -52,6 +53,10 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
 }) => {
   const screens = useBreakpoint();
   const isMobile = !screens.md;
+  const { token } = useToken();
+  
+  // 获取当前是否为暗色模式
+  const isDarkMode = token.colorBgContainer === '#141414' || token.colorBgContainer === '#1f1f1f';
   
   // 滑动相关状态
   const touchStartX = useRef<number | null>(null);
@@ -141,7 +146,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                     borderRadius: '8px',
                     background: getOptionBackground(option.label),
                     marginBottom: 8,
-                    border: '1px solid #f0f0f0',
+                    border: `1px solid ${isDarkMode ? '#303030' : '#f0f0f0'}`,
                     transition: 'all 0.2s'
                   }}
                 >
@@ -181,7 +186,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                     borderRadius: '8px',
                     background: getOptionBackground(option.label),
                     marginBottom: 8,
-                    border: '1px solid #f0f0f0'
+                    border: `1px solid ${isDarkMode ? '#303030' : '#f0f0f0'}`
                   }}
                 >
                   <div style={{ display: 'flex' }}>
@@ -218,11 +223,9 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   textAlign: 'center',
                   marginBottom: 8,
                   borderRadius: '8px',
-                  background: showAnswer && question.answer === true 
-                    ? '#f6ffed'
-                    : showAnswer && userAnswer === true && question.answer !== true
-                    ? '#fff2f0'
-                    : userAnswer === true ? '#e6f7ff' : '#fff'
+                  background: getTrueFalseBackground(true),
+                  color: isDarkMode ? 'rgba(255, 255, 255, 0.85)' : 'inherit',
+                  borderColor: isDarkMode ? '#303030' : '#d9d9d9'
                 }}
               >
                 <span style={{ fontWeight: 'bold' }}>正确</span>
@@ -234,11 +237,9 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                   width: '100%',
                   textAlign: 'center',
                   borderRadius: '8px',
-                  background: showAnswer && question.answer === false 
-                    ? '#f6ffed'
-                    : showAnswer && userAnswer === false && question.answer !== false
-                    ? '#fff2f0'
-                    : userAnswer === false ? '#e6f7ff' : '#fff'
+                  background: getTrueFalseBackground(false),
+                  color: isDarkMode ? 'rgba(255, 255, 255, 0.85)' : 'inherit',
+                  borderColor: isDarkMode ? '#303030' : '#d9d9d9'
                 }}
               >
                 <span style={{ fontWeight: 'bold' }}>错误</span>
@@ -257,25 +258,29 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
     if (!showAnswer) {
       // 高亮用户选择的选项
       if (question.type === QuestionType.SINGLE_CHOICE) {
-        return optionLabel === userAnswer ? '#e6f7ff' : '#fff';
+        return optionLabel === userAnswer 
+          ? isDarkMode ? '#111b26' : '#e6f7ff' 
+          : isDarkMode ? '#1f1f1f' : '#fff';
       }
       
       if (question.type === QuestionType.MULTIPLE_CHOICE) {
-        return (userAnswer as string[])?.includes(optionLabel) ? '#e6f7ff' : '#fff';
+        return (userAnswer as string[])?.includes(optionLabel) 
+          ? isDarkMode ? '#111b26' : '#e6f7ff' 
+          : isDarkMode ? '#1f1f1f' : '#fff';
       }
       
-      return '#fff';
+      return isDarkMode ? '#1f1f1f' : '#fff';
     }
     
     // 显示答案时的背景色
     if (question.type === QuestionType.SINGLE_CHOICE) {
       // 正确答案
       if (optionLabel === question.answer) {
-        return '#f6ffed'; // 绿色背景
+        return isDarkMode ? '#162312' : '#f6ffed'; // 深色/浅色绿色背景
       }
       // 用户的错误答案
       if (optionLabel === userAnswer && optionLabel !== question.answer) {
-        return '#fff2f0'; // 红色背景
+        return isDarkMode ? '#2a1215' : '#fff2f0'; // 深色/浅色红色背景
       }
     }
     
@@ -286,16 +291,36 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
       
       // 正确答案
       if (correctAnswers.includes(optionLabel)) {
-        return '#f6ffed'; // 绿色背景
+        return isDarkMode ? '#162312' : '#f6ffed'; // 深色/浅色绿色背景
       }
       
       // 用户选择的错误答案
       if (userAnswers?.includes(optionLabel) && !correctAnswers.includes(optionLabel)) {
-        return '#fff2f0'; // 红色背景
+        return isDarkMode ? '#2a1215' : '#fff2f0'; // 深色/浅色红色背景
       }
     }
     
-    return '#fff';
+    return isDarkMode ? '#1f1f1f' : '#fff';
+  };
+  
+  // 辅助函数: 获取判断题选项背景色
+  const getTrueFalseBackground = (isTrue: boolean) => {
+    if (!showAnswer) {
+      return userAnswer === isTrue
+        ? isDarkMode ? '#111b26' : '#e6f7ff'
+        : isDarkMode ? '#1f1f1f' : '#fff';
+    }
+    
+    // 显示答案时
+    if (question.answer === isTrue) {
+      return isDarkMode ? '#162312' : '#f6ffed'; // 正确答案背景
+    }
+    
+    if (userAnswer === isTrue && userAnswer !== question.answer) {
+      return isDarkMode ? '#2a1215' : '#fff2f0'; // 错误答案背景
+    }
+    
+    return isDarkMode ? '#1f1f1f' : '#fff';
   };
   
   const renderCorrectAnswer = () => {
@@ -314,7 +339,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
   // 自定义标签组件
   const CustomTag = ({ color, children }: { color: string, children: React.ReactNode }) => (
     <span style={{
-      background: color === 'blue' ? '#e6f7ff' : color,
+      background: color === 'blue' ? (isDarkMode ? '#111b26' : '#e6f7ff') : color,
       color: '#1890ff',
       padding: '2px 8px',
       borderRadius: 4,
@@ -332,7 +357,8 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
         marginBottom: 16,
         borderRadius: 12,
         overflow: 'hidden',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+        boxShadow: isDarkMode ? '0 4px 12px rgba(0,0,0,0.12)' : '0 4px 12px rgba(0,0,0,0.05)',
+        background: token.colorBgContainer
       }}
       bordered={false}
       onTouchStart={handleTouchStart}
@@ -400,7 +426,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
           color: '#8c8c8c',
           fontSize: 12,
           marginTop: 16,
-          background: '#f9f9f9',
+          background: isDarkMode ? 'rgba(255,255,255,0.04)' : '#f9f9f9',
           borderRadius: 8
         }}>
           <span style={{ marginRight: 8, display: 'inline-flex' }}>

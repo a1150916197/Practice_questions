@@ -81,6 +81,88 @@ code {
   background-color: rgba(255, 255, 255, 0.08);
 }
 
+/* 添加Dashboard卡片夜间模式样式 */
+.dark-mode .dashboard-card {
+  background-color: #1f1f1f !important;
+  color: rgba(255, 255, 255, 0.85);
+  border-color: #303030;
+}
+
+.dark-mode .dashboard-card .ant-card-head {
+  background-color: #1f1f1f;
+  color: rgba(255, 255, 255, 0.85);
+  border-color: #303030;
+}
+
+.dark-mode .dashboard-card .ant-statistic-title,
+.dark-mode .dashboard-card .ant-statistic-content {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* 公开题库列表项样式 */
+.bank-list-item {
+  background: #f9f9f9;
+}
+
+.dark-mode .bank-list-item {
+  background: #252525 !important;
+}
+
+/* Dashboard错题卡片样式 */
+.dark-mode .wrong-stats-card {
+  background-color: #252525 !important;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dark-mode .wrong-stats-card .ant-statistic-title {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.dark-mode .wrong-stats-card .ant-statistic-content {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* 添加不同类型错题卡片的样式 */
+.dark-mode .wrong-stats-card.single-card {
+  background-color: #111d2c !important;
+}
+
+.dark-mode .wrong-stats-card.multiple-card {
+  background-color: #272111 !important;
+}
+
+.dark-mode .wrong-stats-card.tf-card {
+  background-color: #162312 !important;
+}
+
+.dark-mode .wrong-stats-card.single-card .ant-statistic-title {
+  color: #adc6ff;
+}
+
+.dark-mode .wrong-stats-card.multiple-card .ant-statistic-title {
+  color: #ffd591;
+}
+
+.dark-mode .wrong-stats-card.tf-card .ant-statistic-title {
+  color: #b7eb8f;
+}
+
+.dark-mode .wrong-stats-card.single-card .ant-statistic-content {
+  color: #d6e4ff;
+}
+
+.dark-mode .wrong-stats-card.multiple-card .ant-statistic-content {
+  color: #ffe7ba;
+}
+
+.dark-mode .wrong-stats-card.tf-card .ant-statistic-content {
+  color: #d9f7be;
+}
+
+.dark-mode .btn {
+  border-color: #424242;
+}
+
 /* 触觉按钮样式 */
 .touch-friendly-button {
   min-height: 44px; /* 符合易触达标准 */
@@ -374,4 +456,239 @@ code {
 
 .touch-feedback:active {
   transform: scale(0.98);
+}
+
+/* 增强暗色模式样式 */
+.dark-mode {
+  background-color: #141414;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dark-mode .ant-card,
+.dark-mode .ant-modal-content,
+.dark-mode .ant-drawer-content {
+  background-color: #1f1f1f;
+  color: rgba(255, 255, 255, 0.85);
+  border-color: #303030;
+}
+
+.dark-mode .ant-card-bordered {
+  border-color: #303030;
+}
+
+.dark-mode .ant-btn {
+  border-color: #424242;
+}
+
+.dark-mode .ant-btn-text {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.dark-mode .ant-progress-inner {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* 暗色模式下表单元素样式 */
+.dark-mode .ant-radio-wrapper,
+.dark-mode .ant-checkbox-wrapper {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dark-mode .ant-radio-button-wrapper {
+  background: #1f1f1f;
+  border-color: #303030;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dark-mode .ant-radio-button-wrapper:hover {
+  color: #1890ff;
+}
+
+.dark-mode .ant-radio-button-wrapper-checked {
+  background: #111b26;
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+/* 暗色模式下的选项卡片样式 */
+.dark-mode .option-card {
+  background-color: #1f1f1f;
+  border-color: #303030;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dark-mode .option-card:hover {
+  background-color: #252525;
+}
+
+.dark-mode .option-card.selected {
+  background-color: #111b26;
+  border-color: #1890ff;
+}
+
+.dark-mode .option-card.correct {
+  background-color: #162312;
+  border-color: #52c41a;
+}
+
+.dark-mode .option-card.incorrect {
+  background-color: #2a1215;
+  border-color: #ff4d4f;
+}
+
+/* 暗色模式下的文本样式 */
+.dark-mode .ant-typography {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dark-mode .ant-typography.ant-typography-secondary {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.dark-mode .ant-menu {
+  background-color: transparent;
+  border-color: #303030;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dark-mode .ant-menu-item:hover {
+  color: #1890ff;
+}
+
+.dark-mode .ant-menu-item-selected {
+  color: #1890ff;
+}
+
+.dark-mode .ant-menu-horizontal {
+  border-bottom-color: #303030;
+}
+
+.dark-mode .ant-divider {
+  border-color: #303030;
+}
+
+/* 暗色模式下的alert组件 */
+.dark-mode .ant-alert-success {
+  background-color: #162312;
+  border-color: #274916;
+}
+
+.dark-mode .ant-alert-error {
+  background-color: #2a1215;
+  border-color: #431418;
+}
+
+.dark-mode .ant-alert-info {
+  background-color: #111b26;
+  border-color: #15395b;
+}
+
+.dark-mode .ant-alert-warning {
+  background-color: #2b2111;
+  border-color: #443b16;
+}
+
+/* 滑动提示区域的暗色模式样式 */
+.dark-mode .swipe-hint {
+  background-color: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* 暗色模式下的图标 */
+.dark-mode .anticon {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* 暗色模式下的滚动条 */
+.dark-mode ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.dark-mode ::-webkit-scrollbar-track {
+  background-color: #141414;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb {
+  background-color: #303030;
+  border-radius: 3px;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb:hover {
+  background-color: #424242;
+}
+
+/* 提高暗色模式下选项可见度的通用类 */
+.dark-mode .option-text {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dark-mode .option-text-secondary {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.dark-mode .option-label {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: bold;
+}
+
+.dark-mode .answer-explanation {
+  color: rgba(255, 255, 255, 0.65);
+  padding: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* 错题统计卡片样式 */
+.wrong-stats-card {
+  border-radius: 8px !important;
+}
+
+.single-card {
+  background: #f0f5ff !important;
+}
+
+.single-card .ant-statistic-title {
+  color: #597ef7 !important;
+}
+
+.single-card .ant-statistic-content {
+  color: #2f54eb !important;
+}
+
+.multiple-card {
+  background: #fff2e8 !important;
+}
+
+.multiple-card .ant-statistic-title {
+  color: #fa8c16 !important;
+}
+
+.multiple-card .ant-statistic-content {
+  color: #fa541c !important;
+}
+
+.tf-card {
+  background: #f6ffed !important;
+}
+
+.tf-card .ant-statistic-title {
+  color: #52c41a !important;
+}
+
+.tf-card .ant-statistic-content {
+  color: #389e0d !important;
+}
+
+/* 错题统计卡片夜间模式样式 */
+.dark-mode .single-card {
+  background: #111d4a !important;
+}
+
+.dark-mode .multiple-card {
+  background: #442a17 !important;
+}
+
+.dark-mode .tf-card {
+  background: #1e3315 !important;
 }

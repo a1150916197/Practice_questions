@@ -224,6 +224,12 @@ const ExamPage: React.FC = () => {
           duration: 1
         });
         
+        // 设置该题目为显示答案状态，禁用选项
+        setUserAnswers(prev => ({
+          ...prev,
+          [`${questionId}_showAnswer`]: true
+        }));
+        
         // 如果回答正确，短暂延迟后自动跳转到下一题
         if (currentStep < questions.length - 1) {
           setTimeout(() => {
@@ -257,8 +263,11 @@ const ExamPage: React.FC = () => {
       
       // 添加延迟以等待动画完成
       setTimeout(() => {
-      setCurrentStep(currentStep + 1);
-        setIsAnimating(false);
+        setCurrentStep(currentStep + 1);
+        // 确保完全重置动画状态
+        setTimeout(() => {
+          setIsAnimating(false);
+        }, 50);
       }, 300);
     }
   };
@@ -271,8 +280,11 @@ const ExamPage: React.FC = () => {
       
       // 添加延迟以等待动画完成
       setTimeout(() => {
-      setCurrentStep(currentStep - 1);
-        setIsAnimating(false);
+        setCurrentStep(currentStep - 1);
+        // 确保完全重置动画状态
+        setTimeout(() => {
+          setIsAnimating(false);
+        }, 50);
       }, 300);
     }
   };
@@ -604,24 +616,27 @@ const ExamPage: React.FC = () => {
             left: 0;
             overflow-y: auto;
             padding: 16px;
+            backface-visibility: hidden;
+            transform-style: preserve-3d;
+            will-change: transform, opacity;
           }
           .current-question {
-            z-index: 1;
+            z-index: 2;
           }
           .next-question {
-            z-index: 0;
+            z-index: 1;
           }
           .slide-out-left {
-            animation: slide-out-to-left 0.3s forwards;
+            animation: slide-out-to-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
           }
           .slide-in-right {
-            animation: slide-in-from-right 0.3s forwards;
+            animation: slide-in-from-right 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
           }
           .slide-out-right {
-            animation: slide-out-to-right 0.3s forwards;
+            animation: slide-out-to-right 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
           }
           .slide-in-left {
-            animation: slide-in-from-left 0.3s forwards;
+            animation: slide-in-from-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
           }
         `}
       </style>
@@ -720,21 +735,24 @@ const ExamPage: React.FC = () => {
       <div 
         className="question-container"
         style={{ 
-        flex: 1, 
+          flex: 1, 
           padding: 0, // 移除padding，让内部元素控制padding
           overflow: 'hidden',
+          position: 'relative'
         }}
       >
         <div 
           ref={contentRef}
           className="question-content"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchCancel}
+          style={{ transform: 'translateZ(0)' }}
         >
           {/* 当前题目 */}
           <div 
+            key={`question-${currentStep}`}
             className={`current-question ${
               isAnimating 
                 ? slideDirection === 'left' 
@@ -745,7 +763,7 @@ const ExamPage: React.FC = () => {
             style={{ 
               padding: screens.xs ? '16px 12px' : '24px',
             }}
-        >
+          >
         {questions.length > 0 && currentStep < questions.length ? (
           <QuestionCard 
             question={questions[currentStep]} 
@@ -773,6 +791,7 @@ const ExamPage: React.FC = () => {
           {/* 下一题（仅在动画过程中显示） */}
           {isAnimating && (
             <div 
+              key={`next-question-${slideDirection === 'left' ? currentStep + 1 : currentStep - 1}`}
               className={`next-question ${
                 slideDirection === 'left' 
                   ? 'slide-in-right' 

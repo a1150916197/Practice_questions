@@ -157,8 +157,7 @@ const Dashboard: React.FC = () => {
               style={{ 
                 padding: '12px 8px',
                 borderRadius: '8px',
-                marginBottom: '8px',
-                background: '#f9f9f9' 
+                marginBottom: '8px'
               }}
             >
               <List.Item.Meta
@@ -219,7 +218,7 @@ const Dashboard: React.FC = () => {
           <div>
             <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
               <Col xs={8} sm={8}>
-                <Card size="small" bordered={false} style={{ background: '#f0f5ff', borderRadius: '8px' }}>
+                <Card size="small" bordered={false} className="wrong-stats-card single-card" style={{ background: '#f0f5ff', borderRadius: '8px' }}>
                   <Statistic
                     title={<span style={{ fontSize: '12px', color: '#597ef7' }}>单选题错题</span>}
                     value={wrongStats.typeStats.single}
@@ -229,7 +228,7 @@ const Dashboard: React.FC = () => {
                 </Card>
               </Col>
               <Col xs={8} sm={8}>
-                <Card size="small" bordered={false} style={{ background: '#fff2e8', borderRadius: '8px' }}>
+                <Card size="small" bordered={false} className="wrong-stats-card multiple-card" style={{ background: '#fff2e8', borderRadius: '8px' }}>
                   <Statistic
                     title={<span style={{ fontSize: '12px', color: '#fa8c16' }}>多选题错题</span>}
                     value={wrongStats.typeStats.multiple}
@@ -239,7 +238,7 @@ const Dashboard: React.FC = () => {
                 </Card>
               </Col>
               <Col xs={8} sm={8}>
-                <Card size="small" bordered={false} style={{ background: '#f6ffed', borderRadius: '8px' }}>
+                <Card size="small" bordered={false} className="wrong-stats-card tf-card" style={{ background: '#f6ffed', borderRadius: '8px' }}>
                   <Statistic
                     title={<span style={{ fontSize: '12px', color: '#52c41a' }}>判断题错题</span>}
                     value={wrongStats.typeStats.tf}

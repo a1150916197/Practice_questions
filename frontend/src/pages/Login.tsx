@@ -165,7 +165,7 @@ const Login: React.FC = () => {
               background: 'rgba(255,255,255,0.1)',
               zIndex: 1
             }} />
-          </div>
+        </div>
         )}
         
         {/* 登录表单区域 */}
@@ -199,32 +199,32 @@ const Login: React.FC = () => {
               <Text type="secondary">输入您的姓名开始学习之旅</Text>
             </div>
           )}
-          
-          <Form
-            name="login"
-            onFinish={onFinish}
-            autoComplete="off"
-            layout="vertical"
+        
+        <Form
+          name="login"
+          onFinish={onFinish}
+          autoComplete="off"
+          layout="vertical"
             size={isMobile ? "large" : "large"}
+        >
+          <Form.Item
+            name="name"
+            rules={[{ required: true, message: '请输入您的姓名' }]}
           >
-            <Form.Item
-              name="name"
-              rules={[{ required: true, message: '请输入您的姓名' }]}
-            >
-              <Input 
+            <Input 
                 prefix={<UserOutlined style={{ color: '#1890ff' }} />} 
                 placeholder="请输入姓名" 
                 style={{ height: 50, borderRadius: 8 }}
-                autoFocus
-              />
-            </Form.Item>
+              autoFocus
+            />
+          </Form.Item>
 
             <Form.Item style={{ marginTop: 24 }}>
-              <Button 
-                type="primary" 
-                htmlType="submit" 
-                block 
-                loading={loading}
+            <Button 
+              type="primary" 
+              htmlType="submit" 
+              block 
+              loading={loading}
                 style={{ 
                   height: 50,
                   borderRadius: 8,
@@ -233,11 +233,11 @@ const Login: React.FC = () => {
                   background: 'linear-gradient(90deg, #1890ff, #52c41a)',
                   border: 'none'
                 }}
-              >
-                进入系统
-              </Button>
-            </Form.Item>
-          </Form>
+            >
+              进入系统
+            </Button>
+          </Form.Item>
+        </Form>
           
           <div style={{ textAlign: 'center', marginTop: 32 }}>
             <Text type="secondary" style={{ fontSize: 12 }}>

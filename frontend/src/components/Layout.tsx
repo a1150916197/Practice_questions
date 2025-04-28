@@ -1,4 +1,4 @@
-import React, { ReactNode, useState, useEffect } from 'react';
+import React, { ReactNode, useState, useContext } from 'react';
 import { Layout as AntLayout, Menu, Avatar, Dropdown, MenuProps, Button, Grid, Typography, Space, Drawer, Badge } from 'antd';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -10,8 +10,11 @@ import {
   LogoutOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined,
-  BellOutlined
+  BellOutlined,
+  MoonOutlined,
+  SunOutlined
 } from '@ant-design/icons';
+import { ThemeContext } from '../App';
 
 const { Header, Content, Footer } = AntLayout;
 const { useBreakpoint } = Grid;
@@ -32,6 +35,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const screens = useBreakpoint();
+  const { isDarkMode, toggleTheme } = useContext(ThemeContext);
   
   // 从localStorage获取用户信息
   const userString = localStorage.getItem('user');
@@ -49,6 +53,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       key: 'profile',
       icon: <UserOutlined />,
       label: user.name
+    },
+    {
+      key: 'theme',
+      icon: isDarkMode ? <SunOutlined /> : <MoonOutlined />,
+      label: isDarkMode ? '切换到浅色模式' : '切换到深色模式',
+      onClick: toggleTheme
     },
     {
       key: 'logout',
@@ -125,19 +135,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = !screens.md;
   
   return (
-    <AntLayout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
-      <Header style={{ 
-        background: '#fff', 
-        padding: '0 16px', 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        position: 'sticky',
-        top: 0,
-        zIndex: 99,
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+    <AntLayout style={{ minHeight: '100vh', background: isDarkMode ? '#141414' : '#f0f2f5' }}>
+        <Header style={{ 
+        background: isDarkMode ? '#1f1f1f' : '#fff', 
+          padding: '0 16px', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          position: 'sticky',
+          top: 0,
+          zIndex: 99,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
         height: isMobile ? 56 : 64
-      }}>
+        }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           {isMobile ? (
             <Button 
@@ -154,8 +164,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent' 
           }}>
-            题库系统
-          </div>
+              题库系统
+            </div>
         </div>
         
         {!isMobile && (
@@ -172,6 +182,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         )}
           
         <Space size={isMobile ? 4 : 12}>
+          <Button 
+            type="text" 
+            icon={isDarkMode ? <SunOutlined /> : <MoonOutlined />} 
+            onClick={toggleTheme}
+            size={isMobile ? "small" : "middle"}
+          />
+          
           <Badge dot>
             <Button type="text" icon={<BellOutlined />} size={isMobile ? "small" : "middle"} />
           </Badge>
@@ -207,22 +224,35 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         />
         
         <div style={{ position: 'absolute', bottom: 16, left: 0, right: 0, padding: '0 24px' }}>
-          <Button 
-            type="primary" 
-            danger 
-            icon={<LogoutOutlined />} 
-            onClick={handleLogout}
-            block
-          >
-            退出登录
-          </Button>
+          <Space direction="vertical" style={{ width: '100%' }}>
+            <Button 
+              icon={isDarkMode ? <SunOutlined /> : <MoonOutlined />}
+              onClick={() => {
+                toggleTheme();
+                setDrawerVisible(false);
+              }}
+              block
+            >
+              {isDarkMode ? '切换到浅色模式' : '切换到深色模式'}
+            </Button>
+            
+            <Button 
+              type="primary" 
+              danger 
+              icon={<LogoutOutlined />} 
+              onClick={handleLogout}
+              block
+            >
+              退出登录
+            </Button>
+          </Space>
         </div>
       </Drawer>
       
       <Content style={{ 
         margin: isMobile ? '8px 8px 60px' : '16px', 
         padding: isMobile ? 12 : 20, 
-        background: '#fff', 
+        background: isDarkMode ? '#1f1f1f' : '#fff', 
         borderRadius: 8,
         boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
         minHeight: isMobile ? 'calc(100vh - 124px)' : 'calc(100vh - 96px)'
@@ -237,8 +267,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           bottom: 0, 
           left: 0, 
           right: 0, 
-          background: '#fff',
-          borderTop: '1px solid #f0f0f0',
+          background: isDarkMode ? '#1f1f1f' : '#fff',
+          borderTop: `1px solid ${isDarkMode ? '#303030' : '#f0f0f0'}`,
           zIndex: 99
         }}>
           <Menu
