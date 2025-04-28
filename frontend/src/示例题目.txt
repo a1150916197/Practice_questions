@@ -1,0 +1,23 @@
+题目:TCP协议属于OSI模型中的哪一层?
+类型:单选题
+A.应用层
+B.表示层
+C.会话层
+D.传输层
+正确答案:D
+解析:TCP协议属于OSI七层参考模型中的传输层(Transport Layer)，负责提供可靠的端到端的通信服务。
+
+题目:以下哪些是NoSQL数据库系统?
+类型:多选题
+A.MongoDB
+B.MySQL
+C.Redis
+D.PostgreSQL
+E.Cassandra
+正确答案:A,C,E
+解析:MongoDB是文档型数据库，Redis是键值对存储数据库，Cassandra是列式数据库，都属于NoSQL系统。MySQL和PostgreSQL是关系型数据库系统。
+
+题目:HTTP是一个无状态协议
+类型:判断题
+正确答案:对
+解析:HTTP协议本身是无状态的，这意味着每个请求都是独立的，服务器不会维护客户端的状态信息。为了实现状态管理，通常使用Cookie、Session等技术。 

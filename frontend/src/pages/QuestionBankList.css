@@ -1,0 +1,161 @@
+.question-bank-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-title {
+  margin-bottom: 24px !important;
+  text-align: center;
+}
+
+.bank-tabs {
+  background: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.question-bank-card {
+  height: 100%;
+  transition: all 0.3s;
+  background-color: #f8f9fa !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+.question-bank-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background-color: #f0f7ff !important;
+}
+
+.card-cover {
+  background: linear-gradient(135deg, #1890ff 0%, #36cfc9 100%);
+  padding: 16px;
+  text-align: center;
+  position: relative;
+  min-height: 80px;
+}
+
+.card-cover-content {
+  position: relative;
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-icon {
+  font-size: 48px;
+  color: #ffffff;
+  margin-bottom: 16px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-status {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.bank-description {
+  min-height: 44px;
+  margin-bottom: 8px !important;
+  color: #666;
+}
+
+.bank-creator {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.create-bank-container {
+  margin-bottom: 24px;
+  text-align: right;
+}
+
+.loading-container {
+  padding: 50px;
+  text-align: center;
+}
+
+.bank-modal .ant-modal-content {
+  border-radius: 8px;
+}
+
+.delete-modal-content {
+  padding: 16px;
+  text-align: center;
+}
+
+.delete-bank-info {
+  margin-top: 16px;
+  padding: 8px;
+  background: #fff2f0;
+  border-radius: 4px;
+}
+
+.action-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .question-bank-container {
+    padding: 12px;
+  }
+
+  .bank-tabs {
+    padding: 12px;
+  }
+  
+  .question-bank-card {
+    margin-bottom: 12px !important;
+  }
+
+  .card-cover {
+    padding: 12px;
+    min-height: 60px;
+  }
+
+  .card-cover-content {
+    height: 40px;
+  }
+
+  .card-icon {
+    font-size: 36px;
+  }
+
+  .question-bank-card .ant-card-body {
+    padding: 16px 12px;
+  }
+
+  .question-bank-card .ant-card-actions {
+    padding: 0 8px;
+  }
+
+  .question-bank-card .ant-card-actions > li {
+    margin: 4px 0;
+  }
+
+  .question-bank-card .ant-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  
+  .bank-description {
+    min-height: 36px;
+    font-size: 12px;
+  }
+
+  .action-button {
+    font-size: 12px;
+    height: 24px;
+    padding: 0 4px;
+  }
+} 
