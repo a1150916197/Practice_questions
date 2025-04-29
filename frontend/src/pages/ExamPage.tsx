@@ -72,15 +72,22 @@ const ExamPage: React.FC = () => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const animationEndRef = useRef<boolean>(false);
   
   // 滑动相关状态
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
+  const touchMoveX = useRef<number | null>(null);
+  const isTouchMoving = useRef<boolean>(false);
+  const lastAnimationFrame = useRef<number | null>(null);
   const MIN_SWIPE_DISTANCE = 50;
   
   // 获取用户信息
   const userString = localStorage.getItem('user');
   const user = userString ? JSON.parse(userString) : null;
+  
+  // 添加一个新的状态记录要渲染的下一题
+  const [nextQuestionIndex, setNextQuestionIndex] = useState<number | null>(null);
   
   // 获取题库和题目数据
   useEffect(() => {
@@ -152,6 +159,19 @@ const ExamPage: React.FC = () => {
     } else {
       setIsDarkMode(prefersDarkMode);
     }
+    
+    // 添加事件监听，当本地存储变化时更新状态
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'darkMode') {
+        setIsDarkMode(e.newValue === 'true');
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
   
   // 处理用户回答
@@ -258,16 +278,17 @@ const ExamPage: React.FC = () => {
   // 跳转到下一题（添加动画）
   const goToNextQuestion = () => {
     if (currentStep < questions.length - 1 && !isAnimating) {
+      // 先设置下一题索引
+      setNextQuestionIndex(currentStep + 1);
       setSlideDirection('left');
       setIsAnimating(true);
       
-      // 添加延迟以等待动画完成
+      // 等待动画完成后更新当前题目
       setTimeout(() => {
         setCurrentStep(currentStep + 1);
-        // 确保完全重置动画状态
-        setTimeout(() => {
-          setIsAnimating(false);
-        }, 50);
+        // 清除下一题索引和动画状态
+        setNextQuestionIndex(null);
+        setIsAnimating(false);
       }, 300);
     }
   };
@@ -275,16 +296,17 @@ const ExamPage: React.FC = () => {
   // 跳转到上一题（添加动画）
   const goToPrevQuestion = () => {
     if (currentStep > 0 && !isAnimating) {
+      // 先设置下一题索引
+      setNextQuestionIndex(currentStep - 1);
       setSlideDirection('right');
       setIsAnimating(true);
       
-      // 添加延迟以等待动画完成
+      // 等待动画完成后更新当前题目
       setTimeout(() => {
         setCurrentStep(currentStep - 1);
-        // 确保完全重置动画状态
-        setTimeout(() => {
-          setIsAnimating(false);
-        }, 50);
+        // 清除下一题索引和动画状态
+        setNextQuestionIndex(null);
+        setIsAnimating(false);
       }, 300);
     }
   };
@@ -458,70 +480,148 @@ const ExamPage: React.FC = () => {
 
   // 处理滑动事件
   const handleTouchStart = (e: React.TouchEvent) => {
+    // 如果动画正在进行中，不处理触摸事件
+    if (isAnimating) return;
+    
+    // 记录起始位置
     touchStartX.current = e.touches[0].clientX;
+    isTouchMoving.current = false;
+    
+    // 如果有正在进行的动画帧，取消它
+    if (lastAnimationFrame.current) {
+      cancelAnimationFrame(lastAnimationFrame.current);
+      lastAnimationFrame.current = null;
+    }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    // 如果动画正在进行中或未开始触摸，不处理
+    if (isAnimating || touchStartX.current === null) return;
+    
+    // 更新当前位置
+    touchMoveX.current = e.touches[0].clientX;
     touchEndX.current = e.touches[0].clientX;
+    isTouchMoving.current = true;
+    
+    // 使用requestAnimationFrame优化性能
+    if (lastAnimationFrame.current === null) {
+      lastAnimationFrame.current = requestAnimationFrame(updateTouchMove);
+    }
+  };
+
+  // 优化的动画帧更新函数
+  const updateTouchMove = () => {
+    lastAnimationFrame.current = null;
+    
+    if (!isTouchMoving.current || touchStartX.current === null || touchMoveX.current === null) return;
     
     // 实时反馈滑动效果
-    if (contentRef.current && touchStartX.current !== null) {
-      const diffX = e.touches[0].clientX - touchStartX.current;
-      if (Math.abs(diffX) > 20) {
-        // 防止过度滑动
-        const limitedDiff = Math.sign(diffX) * Math.min(Math.abs(diffX), 100);
+    if (contentRef.current) {
+      const diffX = touchMoveX.current - touchStartX.current;
+      if (Math.abs(diffX) > 10) {
+        // 计算有限制的滑动距离
+        let limitedDiff = diffX;
         
         // 第一题不能向右滑，最后一题不能向左滑
         if ((currentStep === 0 && diffX > 0) || 
             (currentStep === questions.length - 1 && diffX < 0)) {
-          // 限制滑动幅度，给予阻力感
-          contentRef.current.style.transform = `translateX(${limitedDiff / 3}px)`;
-        } else {
-          contentRef.current.style.transform = `translateX(${limitedDiff}px)`;
+          // 设置更强的阻力感
+          limitedDiff = diffX / 4;
+        } else if (Math.abs(diffX) > 100) {
+          // 限制最大滑动距离
+          limitedDiff = Math.sign(diffX) * (100 + (Math.abs(diffX) - 100) * 0.2);
         }
+        
+        // 应用硬件加速的CSS变换
+        contentRef.current.style.transform = `translate3d(${limitedDiff}px, 0, 0)`;
       }
+    }
+    
+    // 如果仍在移动，继续请求下一帧
+    if (isTouchMoving.current) {
+      lastAnimationFrame.current = requestAnimationFrame(updateTouchMove);
     }
   };
 
   const handleTouchEnd = () => {
-    if (!touchStartX.current || !touchEndX.current || isAnimating) return;
-    
-    const distance = touchEndX.current - touchStartX.current;
-    
-    // 重置transform
-    if (contentRef.current) {
-      contentRef.current.style.transition = 'transform 0.3s ease';
-      contentRef.current.style.transform = 'translateX(0)';
-      
-      // 清除transition属性
-      setTimeout(() => {
-        if (contentRef.current) {
-          contentRef.current.style.transition = '';
-        }
-      }, 300);
+    // 如果没有开始触摸或正在动画中，则直接返回
+    if (touchStartX.current === null || touchEndX.current === null || isAnimating) {
+      resetTouchState();
+      return;
     }
     
-    if (Math.abs(distance) > MIN_SWIPE_DISTANCE) {
-      if (distance > 0 && currentStep > 0) {
-        // 右滑，前一题
-        goToPrevQuestion();
-      } else if (distance < 0 && currentStep < questions.length - 1) {
-        // 左滑，下一题
-        goToNextQuestion();
+    // 停止动画帧更新
+    if (lastAnimationFrame.current) {
+      cancelAnimationFrame(lastAnimationFrame.current);
+      lastAnimationFrame.current = null;
+    }
+    
+    const distance = touchEndX.current - touchStartX.current;
+    const absDist = Math.abs(distance);
+    
+    // 重置transform，添加平滑过渡
+    if (contentRef.current) {
+      // 只有当滑动距离足够大时才触发翻页
+      if (absDist > MIN_SWIPE_DISTANCE) {
+        if (distance > 0 && currentStep > 0) {
+          // 右滑，前一题 - 直接调用翻页函数
+          contentRef.current.style.transition = '';
+          contentRef.current.style.transform = '';
+          goToPrevQuestion();
+        } else if (distance < 0 && currentStep < questions.length - 1) {
+          // 左滑，下一题 - 直接调用翻页函数
+          contentRef.current.style.transition = '';
+          contentRef.current.style.transform = '';
+          goToNextQuestion();
+        } else {
+          // 回弹到原位
+          contentRef.current.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+          contentRef.current.style.transform = 'translate3d(0, 0, 0)';
+          
+          // 清除transition
+          setTimeout(() => {
+            if (contentRef.current) {
+              contentRef.current.style.transition = '';
+            }
+          }, 300);
+        }
+      } else {
+        // 距离太小，只需回弹
+        contentRef.current.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        contentRef.current.style.transform = 'translate3d(0, 0, 0)';
+        
+        // 清除transition
+        setTimeout(() => {
+          if (contentRef.current) {
+            contentRef.current.style.transition = '';
+          }
+        }, 300);
       }
     }
     
-    // 重置
+    // 重置触摸状态
+    resetTouchState();
+  };
+
+  // 重置触摸状态的函数
+  const resetTouchState = () => {
     touchStartX.current = null;
     touchEndX.current = null;
+    touchMoveX.current = null;
+    isTouchMoving.current = false;
+    
+    if (lastAnimationFrame.current) {
+      cancelAnimationFrame(lastAnimationFrame.current);
+      lastAnimationFrame.current = null;
+    }
   };
 
   // 处理滑动取消
   const handleTouchCancel = () => {
-    // 重置transform
+    // 回弹到原位
     if (contentRef.current) {
-      contentRef.current.style.transition = 'transform 0.3s ease';
-      contentRef.current.style.transform = 'translateX(0)';
+      contentRef.current.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      contentRef.current.style.transform = 'translate3d(0, 0, 0)';
       
       // 清除transition属性
       setTimeout(() => {
@@ -531,18 +631,8 @@ const ExamPage: React.FC = () => {
       }, 300);
     }
     
-    // 重置
-    touchStartX.current = null;
-    touchEndX.current = null;
-  };
-
-  // 切换暗黑模式
-  const toggleDarkMode = () => {
-    setIsDarkMode(prev => {
-      const newValue = !prev;
-      localStorage.setItem('darkMode', String(newValue));
-      return newValue;
-    });
+    // 重置触摸状态
+    resetTouchState();
   };
   
   // 添加CSS样式
@@ -573,30 +663,31 @@ const ExamPage: React.FC = () => {
       height: '100vh', 
       display: 'flex', 
       flexDirection: 'column',
-        background: isDarkMode ? '#141414' : '#f5f5f5'
+      background: isDarkMode ? '#141414' : '#f5f5f5'
     }}>
       {/* 添加全局动画样式 */}
       <style>
         {`
           @keyframes slide-out-to-left {
-            0% { transform: translateX(0); opacity: 1; }
-            100% { transform: translateX(-100%); opacity: 1; }
+            0% { transform: translate3d(0, 0, 0); opacity: 1; }
+            100% { transform: translate3d(-100%, 0, 0); opacity: 0; }
           }
           @keyframes slide-in-from-right {
-            0% { transform: translateX(100%); opacity: 1; }
-            100% { transform: translateX(0); opacity: 1; }
+            0% { transform: translate3d(100%, 0, 0); opacity: 0; }
+            100% { transform: translate3d(0, 0, 0); opacity: 1; }
           }
           @keyframes slide-out-to-right {
-            0% { transform: translateX(0); opacity: 1; }
-            100% { transform: translateX(100%); opacity: 1; }
+            0% { transform: translate3d(0, 0, 0); opacity: 1; }
+            100% { transform: translate3d(100%, 0, 0); opacity: 0; }
           }
           @keyframes slide-in-from-left {
-            0% { transform: translateX(-100%); opacity: 1; }
-            100% { transform: translateX(0); opacity: 1; }
+            0% { transform: translate3d(-100%, 0, 0); opacity: 0; }
+            100% { transform: translate3d(0, 0, 0); opacity: 1; }
           }
           .question-container {
             overflow: hidden;
             position: relative;
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
           }
           .question-content {
             will-change: transform;
@@ -604,39 +695,37 @@ const ExamPage: React.FC = () => {
             position: relative;
             height: 100%;
             width: 100%;
+            transform: translate3d(0, 0, 0);
           }
-          .slide-transition {
-            transition: transform 0.3s ease;
-          }
-          .current-question, .next-question {
+          .current-animation {
+            animation-fill-mode: forwards !important;
             position: absolute;
-            width: 100%;
-            height: 100%;
             top: 0;
             left: 0;
-            overflow-y: auto;
-            padding: 16px;
-            backface-visibility: hidden;
-            transform-style: preserve-3d;
-            will-change: transform, opacity;
-          }
-          .current-question {
+            width: 100%;
+            height: 100%;
             z-index: 2;
           }
-          .next-question {
+          .next-animation {
+            animation-fill-mode: forwards !important;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             z-index: 1;
           }
           .slide-out-left {
-            animation: slide-out-to-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            animation: slide-out-to-left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
           }
           .slide-in-right {
-            animation: slide-in-from-right 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            animation: slide-in-from-right 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
           }
           .slide-out-right {
-            animation: slide-out-to-right 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            animation: slide-out-to-right 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
           }
           .slide-in-left {
-            animation: slide-in-from-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            animation: slide-in-from-left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
           }
         `}
       </style>
@@ -669,64 +758,59 @@ const ExamPage: React.FC = () => {
             <span>用时: {formatTime(timeSpent)}</span>
           </div>
           
-            <div style={{ display: 'flex', gap: 8 }}>
-              <Button 
-                icon={<SwapOutlined />}
-                onClick={toggleDarkMode}
-                size={screens.xs ? 'small' : 'middle'}
-              />
-          <Button 
-            type="primary" 
-            onClick={() => setSubmitModalVisible(true)}
-                size={screens.xs ? 'middle' : 'large'}
-                style={{ borderRadius: 8 }}
-          >
-            结束答题
-          </Button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Button 
+              type="primary" 
+              onClick={() => setSubmitModalVisible(true)}
+              size={screens.xs ? 'middle' : 'large'}
+              style={{ borderRadius: 8 }}
+            >
+              结束答题
+            </Button>
+          </div>
         </div>
       </div>
-        </div>
         
-        {/* 进度指示区 */}
-        <div style={{ 
-          background: isDarkMode ? '#1f1f1f' : '#fff',
-          borderTop: `1px solid ${isDarkMode ? '#303030' : '#f0f0f0'}`,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: screens.xs ? 'wrap' : 'nowrap'
-        }}>
-          {/* 环形进度指示器 */}
-          <div style={{ padding: screens.xs ? '8px' : '12px' }}>
-            {renderCircleProgress()}
-          </div>
-          
+      {/* 进度指示区 */}
       <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column',
-            flex: 1,
-            padding: screens.xs ? '8px 12px' : '8px 24px'
+        background: isDarkMode ? '#1f1f1f' : '#fff',
+        borderTop: `1px solid ${isDarkMode ? '#303030' : '#f0f0f0'}`,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: screens.xs ? 'wrap' : 'nowrap'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <Text>
-            进度: {getAnsweredCount()}/{questions.length} 题
-              </Text>
-          <Button 
-                type="primary"
-                shape="round"
-            icon={<MenuOutlined />} 
-            onClick={() => setShowDrawer(true)}
-            size={screens.xs ? 'small' : 'middle'}
-          >
-            题目导航
-          </Button>
+        {/* 环形进度指示器 */}
+        <div style={{ padding: screens.xs ? '8px' : '12px' }}>
+          {renderCircleProgress()}
         </div>
+          
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          flex: 1,
+          padding: screens.xs ? '8px 12px' : '8px 24px'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+            <Text>
+              进度: {getAnsweredCount()}/{questions.length} 题
+            </Text>
+            <Button 
+              type="primary"
+              shape="round"
+              icon={<MenuOutlined />} 
+              onClick={() => setShowDrawer(true)}
+              size={screens.xs ? 'small' : 'middle'}
+            >
+              题目导航
+            </Button>
+          </div>
           <Progress 
             percent={Math.round((getAnsweredCount() / questions.length) * 100)} 
             showInfo={false} 
             status="active" 
-              strokeColor={{ from: token.colorPrimary, to: token.colorPrimaryActive }}
-              style={{ margin: screens.xs ? '4px 0 8px' : '8px 0 12px' }}
+            strokeColor={{ from: token.colorPrimary, to: token.colorPrimaryActive }}
+            style={{ margin: screens.xs ? '4px 0 8px' : '8px 0 12px' }}
           />
         </div>
       </div>
@@ -736,11 +820,12 @@ const ExamPage: React.FC = () => {
         className="question-container"
         style={{ 
           flex: 1, 
-          padding: 0, // 移除padding，让内部元素控制padding
+          padding: 0,
           overflow: 'hidden',
-          position: 'relative'
+          position: 'relative',
         }}
       >
+        {/* 滑动手势层 */}
         <div 
           ref={contentRef}
           className="question-content"
@@ -748,77 +833,78 @@ const ExamPage: React.FC = () => {
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchCancel}
-          style={{ transform: 'translateZ(0)' }}
         >
           {/* 当前题目 */}
-          <div 
-            key={`question-${currentStep}`}
-            className={`current-question ${
-              isAnimating 
-                ? slideDirection === 'left' 
-                  ? 'slide-out-left' 
-                  : 'slide-out-right'
-                : ''
-            }`}
-            style={{ 
-              padding: screens.xs ? '16px 12px' : '24px',
-            }}
-          >
-        {questions.length > 0 && currentStep < questions.length ? (
-          <QuestionCard 
-            question={questions[currentStep]} 
-            userAnswer={userAnswers[questions[currentStep]._id]}
-            onAnswerChange={handleAnswerChange}
-              showAnswer={userAnswers[`${questions[currentStep]._id}_showAnswer`] === true}
-                onSubmit={questions[currentStep].type === QuestionType.MULTIPLE_CHOICE ? handleSubmitAnswer : undefined}
-          />
-        ) : (
-          <Card>
-            <div style={{ textAlign: 'center', padding: '40px 0' }}>
-              <p>没有题目或已完成所有题目</p>
-                <Button 
-                  type="primary" 
-                  onClick={() => setSubmitModalVisible(true)}
-                  size="large"
-                >
-                结束答题
-              </Button>
-            </div>
-          </Card>
-        )}
-          </div>
-          
-          {/* 下一题（仅在动画过程中显示） */}
-          {isAnimating && (
+          {!isAnimating ? (
             <div 
-              key={`next-question-${slideDirection === 'left' ? currentStep + 1 : currentStep - 1}`}
-              className={`next-question ${
-                slideDirection === 'left' 
-                  ? 'slide-in-right' 
-                  : 'slide-in-left'
-              }`}
               style={{ 
                 padding: screens.xs ? '16px 12px' : '24px',
+                position: 'relative',
+                zIndex: 1
               }}
             >
-              {(() => {
-                const nextStep = slideDirection === 'left' 
-                  ? currentStep + 1 
-                  : currentStep - 1;
-                  
-                if (nextStep >= 0 && nextStep < questions.length) {
-                  return (
-                    <QuestionCard 
-                      question={questions[nextStep]} 
-                      userAnswer={userAnswers[questions[nextStep]._id]}
-                      onAnswerChange={() => {}}  // 禁用交互
-                      showAnswer={userAnswers[`${questions[nextStep]._id}_showAnswer`] === true}
-                    />
-                  );
-                }
-                return null;
-              })()}
+              {questions.length > 0 && currentStep < questions.length ? (
+                <QuestionCard 
+                  question={questions[currentStep]} 
+                  userAnswer={userAnswers[questions[currentStep]._id]}
+                  onAnswerChange={handleAnswerChange}
+                  showAnswer={userAnswers[`${questions[currentStep]._id}_showAnswer`] === true}
+                  onSubmit={questions[currentStep].type === QuestionType.MULTIPLE_CHOICE ? handleSubmitAnswer : undefined}
+                />
+              ) : (
+                <Card>
+                  <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                    <p>没有题目或已完成所有题目</p>
+                    <Button 
+                      type="primary" 
+                      onClick={() => setSubmitModalVisible(true)}
+                      size="large"
+                    >
+                      结束答题
+                    </Button>
+                  </div>
+                </Card>
+              )}
             </div>
+          ) : (
+            // 动画状态 - 显示两层
+            <>
+              {/* 当前题目 - 滑出 */}
+              <div 
+                className={`current-animation ${
+                  slideDirection === 'left' ? 'slide-out-left' : 'slide-out-right'
+                }`}
+              >
+                <div style={{ padding: screens.xs ? '16px 12px' : '24px' }}>
+                  {questions.length > 0 && currentStep < questions.length && (
+                    <QuestionCard 
+                      question={questions[currentStep]} 
+                      userAnswer={userAnswers[questions[currentStep]._id]}
+                      onAnswerChange={() => {}}
+                      showAnswer={userAnswers[`${questions[currentStep]._id}_showAnswer`] === true}
+                    />
+                  )}
+                </div>
+              </div>
+              
+              {/* 下一题 - 滑入 */}
+              {nextQuestionIndex !== null && nextQuestionIndex >= 0 && nextQuestionIndex < questions.length && (
+                <div 
+                  className={`next-animation ${
+                    slideDirection === 'left' ? 'slide-in-right' : 'slide-in-left'
+                  }`}
+                >
+                  <div style={{ padding: screens.xs ? '16px 12px' : '24px' }}>
+                    <QuestionCard 
+                      question={questions[nextQuestionIndex]} 
+                      userAnswer={userAnswers[questions[nextQuestionIndex]._id]}
+                      onAnswerChange={() => {}}
+                      showAnswer={userAnswers[`${questions[nextQuestionIndex]._id}_showAnswer`] === true}
+                    />
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
