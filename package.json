@@ -1,6 +1,8 @@
 {
   "dependencies": {
+    "@types/react-transition-group": "^4.4.12",
     "axios": "^1.9.0",
+    "react-transition-group": "^4.4.5",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

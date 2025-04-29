@@ -356,9 +356,17 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
         width: '100%', 
         marginBottom: 16,
         borderRadius: 12,
-        overflow: 'hidden',
         boxShadow: isDarkMode ? '0 4px 12px rgba(0,0,0,0.12)' : '0 4px 12px rgba(0,0,0,0.05)',
-        background: token.colorBgContainer
+        background: token.colorBgContainer,
+        maxHeight: showAnswer ? '70vh' : 'none',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+      bodyStyle={{
+        padding: '24px',
+        overflow: showAnswer ? 'auto' : 'visible',
+        flex: '1 1 auto',
+        paddingBottom: showAnswer ? '120px' : '24px'
       }}
       bordered={false}
       onTouchStart={handleTouchStart}
