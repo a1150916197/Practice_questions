@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   List, 
@@ -71,8 +71,8 @@ const QuestionBankList: React.FC = () => {
   const userString = localStorage.getItem('user');
   const user: User = userString ? JSON.parse(userString) : { id: '', name: '', role: 'student' };
   
-  // 获取题库数据
-  const fetchQuestionBanks = async () => {
+  // 使用useCallback包装fetchQuestionBanks函数
+  const fetchQuestionBanks = useCallback(async () => {
     try {
       setLoading(true);
       // 获取公开题库
@@ -88,11 +88,11 @@ const QuestionBankList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.id]);
   
   useEffect(() => {
     fetchQuestionBanks();
-  }, [user.id]);
+  }, [fetchQuestionBanks]);
   
   // 打开创建/编辑题库模态框
   const showModal = (bank?: QuestionBank) => {

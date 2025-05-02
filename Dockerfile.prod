@@ -1,0 +1,60 @@
+# 多阶段构建 - 第一阶段：前端构建
+FROM node:18-alpine AS frontend-builder
+WORKDIR /app/frontend
+
+# 复制前端依赖文件
+COPY frontend/package*.json ./
+RUN npm ci --only=production
+
+# 复制前端源码
+COPY frontend/ ./
+
+# 构建前端
+RUN npm run build
+
+# 多阶段构建 - 第二阶段：后端构建
+FROM node:18-alpine AS backend-builder
+WORKDIR /app
+
+# 复制后端依赖文件
+COPY package*.json ./
+RUN npm ci --only=production
+
+# 复制后端源码
+COPY . .
+
+# 多阶段构建 - 第三阶段：最终运行镜像
+FROM node:18-alpine
+
+# 安装生产工具
+RUN apk add --no-cache wget curl && \
+    npm install -g pm2
+
+WORKDIR /app
+
+# 复制后端生产依赖和源代码
+COPY --from=backend-builder /app/node_modules ./node_modules
+COPY --from=backend-builder /app/package*.json ./
+COPY --from=backend-builder /app/src ./src
+COPY --from=backend-builder /app/dist ./dist
+COPY --from=backend-builder /app/index.js ./index.js
+
+# 复制前端构建结果
+COPY --from=frontend-builder /app/frontend/build ./frontend/build
+
+# 复制入口脚本
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# 设置环境变量
+ENV NODE_ENV=production
+
+# 配置健康检查
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT:-3001}/api/health || exit 1
+
+# 入口点设置
+ENTRYPOINT ["docker-entrypoint.sh"]
+
+# 暴露端口
+EXPOSE 3001 

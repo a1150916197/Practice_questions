@@ -1,7 +1,8 @@
-import React, { useRef, useContext } from 'react';
-import { Card, Radio, Checkbox, Typography, Space, Grid, Button, Alert, Progress, ConfigProvider, theme } from 'antd';
+import React, { useRef, useState } from 'react';
+import { Card, Radio, Checkbox, Typography, Space, Grid, Button, Alert, Progress, theme } from 'antd';
+import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Text } = Typography;
 const { Group: RadioGroup } = Radio;
 const { Group: CheckboxGroup } = Checkbox;
 const { useBreakpoint } = Grid;

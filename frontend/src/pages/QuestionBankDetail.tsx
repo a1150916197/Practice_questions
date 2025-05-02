@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Typography,
@@ -65,8 +65,8 @@ const QuestionBankDetail: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isCreator, setIsCreator] = useState(false);
 
-  // 获取题库和问题数据
-  const fetchData = async () => {
+  // 使用useCallback包装fetchData函数
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       console.log('开始获取题库详情，ID:', id);
@@ -186,11 +186,11 @@ const QuestionBankDetail: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, navigate]); // 添加正确的依赖
 
   useEffect(() => {
     fetchData();
-  }, [id, navigate]);
+  }, [fetchData]);
 
   const startExam = () => {
     navigate(`/exam/${id}`);

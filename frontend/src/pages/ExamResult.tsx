@@ -24,7 +24,7 @@ import { questionAPI, questionBankAPI } from '../services/api';
 
 const { Title, Paragraph } = Typography;
 
-interface ExamResult {
+interface ExamResultData {
   bankId: string;
   userAnswers: {
     [key: string]: any;
@@ -40,7 +40,7 @@ const ExamResult: React.FC = () => {
   
   const [questionBank, setQuestionBank] = useState<any>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [examResult, setExamResult] = useState<ExamResult | null>(null);
+  const [examResult, setExamResult] = useState<ExamResultData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isWrongQuestionPractice, setIsWrongQuestionPractice] = useState(false);
   
@@ -59,7 +59,7 @@ const ExamResult: React.FC = () => {
           return;
         }
         
-        const result = JSON.parse(resultString) as ExamResult;
+        const result = JSON.parse(resultString) as ExamResultData;
         setExamResult(result);
         
         // 检查是否是错题练习模式
