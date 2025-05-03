@@ -22,7 +22,7 @@ setupPerformanceMiddlewares(app);
 
 // CORS设置
 app.use(cors({
-  origin: '*', // 允许所有来源的请求
+  origin: function(origin, callback) { callback(null, true); }, // 允许所有来源访问允许所有来源的请求
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // 明确允许DELETE请求
   allowedHeaders: ['Content-Type', 'Authorization', 'user-id'], // 允许自定义的user-id头
   credentials: true, // 允许携带凭证
@@ -65,3 +65,5 @@ process.on('uncaughtException', (error) => {
 process.on('unhandledRejection', (error) => {
   console.error('未处理的Promise拒绝:', error);
 }); 
+
+
