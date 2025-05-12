@@ -1,5 +1,5 @@
 import React, { ReactNode, useState, useContext } from 'react';
-import { Layout as AntLayout, Menu, Avatar, Dropdown, MenuProps, Button, Grid, Typography, Space, Drawer, Badge } from 'antd';
+import { Layout as AntLayout, Menu, Avatar, Dropdown, MenuProps, Button, Grid, Space, Drawer, Badge } from 'antd';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   HomeOutlined,
@@ -9,16 +9,14 @@ import {
   UserOutlined,
   LogoutOutlined,
   MenuUnfoldOutlined,
-  MenuFoldOutlined,
   BellOutlined,
   MoonOutlined,
   SunOutlined
 } from '@ant-design/icons';
 import { ThemeContext } from '../App';
 
-const { Header, Content, Footer } = AntLayout;
+const { Header, Content } = AntLayout;
 const { useBreakpoint } = Grid;
-const { Text } = Typography;
 
 interface LayoutProps {
   children: ReactNode;

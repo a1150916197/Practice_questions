@@ -190,3 +190,80 @@
 ---
 
 本优化方案全面提升了题库系统在移动端的用户体验，通过精心设计的布局、交互和视觉元素，使用户能够在移动设备上同样获得流畅、高效的系统使用体验。 
+
+# 低资源环境应用优化方案
+
+本项目是一个针对低资源环境(2核2G Linux云服务器)进行全面优化的React+Node.js+MongoDB应用程序。通过一系列前端、后端和部署优化，使应用能在资源受限环境中高效运行。
+
+## 项目架构
+
+- **前端**: React, TypeScript, Ant Design (优化版)
+- **后端**: Node.js, Express
+- **数据库**: MongoDB
+- **部署**: Docker, Nginx, PM2
+
+## 优化亮点
+
+1. **前端优化**:
+   - React组件性能优化 (React.memo, useMemo, useCallback)
+   - 代码分割与懒加载
+   - 减少依赖，使用内联样式代替样式库
+   - 静态资源优化
+
+2. **后端优化**:
+   - Node.js内存使用限制
+   - 查询优化与数据索引
+   - 缓存策略
+
+3. **部署优化**:
+   - Docker多阶段构建
+   - 资源使用限制
+   - Nginx配置优化
+   - MongoDB配置优化
+
+## 快速启动
+
+### 开发环境
+
+```bash
+# 安装依赖
+npm install
+
+# 启动开发服务器
+npm run dev
+```
+
+### 生产环境
+
+```bash
+# 构建优化的Docker镜像
+docker-compose -f docker-compose.prod.yml build
+
+# 启动服务
+docker-compose -f docker-compose.prod.yml up -d
+
+# 查看日志
+docker-compose -f docker-compose.prod.yml logs -f
+```
+
+## 性能监控
+
+系统集成了基本的性能监控:
+
+```bash
+# 检查PM2进程状态
+docker exec -it <container_id> pm2 status
+
+# 检查内存使用情况
+docker exec -it <container_id> pm2 monit
+```
+
+## 文档
+
+- [优化指南](./OPTIMIZATION.md) - 详细的优化措施与实施方法
+- [API文档](./API.md) - API接口文档
+- [部署指南](./DEPLOYMENT.md) - 完整部署流程
+
+## 许可证
+
+MIT 
