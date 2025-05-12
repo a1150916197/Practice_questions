@@ -311,11 +311,19 @@ def extract_questions(section, question_type):
                     
                     # 提取答案字母（可能是连续的多个字母，如BD）
                     answer_letters = ""
-                    for c in answer_part:
-                        if c in "ABCD":
-                            answer_letters += c
+                    # 对于判断题，特殊处理√、×、正确、错误等符号和文本
+                    if question_type == "判断题":
+                        if any(c in answer_part for c in ["√", "正", "对"]):
+                            answer_letters = "对"
+                        elif any(c in answer_part for c in ["×", "错", "误"]):
+                            answer_letters = "错"
+                    else:
+                        # 非判断题提取ABCD
+                        for c in answer_part:
+                            if c in "ABCD":
+                                answer_letters += c
                     
-                    # 确保至少找到一个答案字母
+                    # 确保至少找到一个答案字母或判断题答案
                     if answer_letters:
                         # 找到解析部分
                         explanation = ""
@@ -347,11 +355,19 @@ def extract_questions(section, question_type):
                     
                     # 提取答案字母（可能是连续的多个字母，如BD）
                     answer_letters = ""
-                    for c in answer_part:
-                        if c in "ABCD":
-                            answer_letters += c
+                    # 对于判断题，特殊处理√、×、正确、错误等符号和文本
+                    if question_type == "判断题":
+                        if any(c in answer_part for c in ["√", "正", "对"]):
+                            answer_letters = "对"
+                        elif any(c in answer_part for c in ["×", "错", "误"]):
+                            answer_letters = "错"
+                    else:
+                        # 非判断题提取ABCD
+                        for c in answer_part:
+                            if c in "ABCD":
+                                answer_letters += c
                     
-                    # 确保至少找到一个答案字母
+                    # 确保至少找到一个答案字母或判断题答案
                     if answer_letters:
                         # 找到解析部分
                         explanation = ""
@@ -391,9 +407,16 @@ def extract_questions(section, question_type):
                 
                 # 只要包含字母就认为是答案
                 answer_letters = ""
-                for c in rest:
-                    if c in "ABCD":
-                        answer_letters += c
+                # 对于判断题，特殊处理√、×等符号
+                if question_type == "判断题":
+                    if any(c in rest for c in ["√", "正", "对"]):
+                        answer_letters = "对"
+                    elif any(c in rest for c in ["×", "错", "误"]):
+                        answer_letters = "错"
+                else:
+                    for c in rest:
+                        if c in "ABCD":
+                            answer_letters += c
                 
                 if answer_letters:
                     answer_map[num] = {
@@ -419,9 +442,16 @@ def extract_questions(section, question_type):
                     
                     # 提取第一个字母作为答案
                     answer_letters = ""
-                    for c in rest:
-                        if c in "ABCD":
-                            answer_letters += c
+                    # 对于判断题，特殊处理√、×等符号
+                    if question_type == "判断题":
+                        if any(c in rest for c in ["√", "正", "对"]):
+                            answer_letters = "对"
+                        elif any(c in rest for c in ["×", "错", "误"]):
+                            answer_letters = "错"
+                    else:
+                        for c in rest:
+                            if c in "ABCD":
+                                answer_letters += c
                     
                     if answer_letters:
                         data["answer"] = answer_letters
@@ -433,9 +463,16 @@ def extract_questions(section, question_type):
                     
                     # 提取第一个字母作为答案
                     answer_letters = ""
-                    for c in rest:
-                        if c in "ABCD":
-                            answer_letters += c
+                    # 对于判断题，特殊处理√、×等符号
+                    if question_type == "判断题":
+                        if any(c in rest for c in ["√", "正", "对"]):
+                            answer_letters = "对"
+                        elif any(c in rest for c in ["×", "错", "误"]):
+                            answer_letters = "错"
+                    else:
+                        for c in rest:
+                            if c in "ABCD":
+                                answer_letters += c
                     
                     if answer_letters:
                         data["answer"] = answer_letters
@@ -460,7 +497,9 @@ def extract_questions(section, question_type):
                     current_line = answer_lines[i].strip()
                     # 如果遇到下一题的答案，停止
                     if current_line and current_line[0].isdigit() and (
-                            "." in current_line or "," in current_line) and any(c in current_line for c in "ABCD"):
+                            "." in current_line or "," in current_line) and (
+                            any(c in current_line for c in "ABCD") or 
+                            any(c in current_line for c in ["√", "×", "正", "错"])):
                         break
                     # 否则继续添加解析内容
                     if current_line:
@@ -485,6 +524,21 @@ def extract_questions(section, question_type):
         content = re.sub(r'用物是.*$', '', content.strip())
         content = re.sub(r'用$', '', content.strip())
         content = re.sub(r'（常考）', '', content.strip())
+        
+        # 判断题特殊处理，移除末尾的 "( )" 或 "（）" 等标记
+        if data['type'] == "判断题":
+            content = re.sub(r'\s*[\(（]\s*[\)）]\s*$', '', content.strip())
+            content = re.sub(r'\s*\(易错\)\s*[\(（]\s*[\)）]\s*$', '', content.strip())
+            content = re.sub(r'\s*\(常考\)\s*[\(（]\s*[\)）]\s*$', '', content.strip())
+            # 移除末尾的"( ) 三 、判断题"等多余内容
+            content = re.sub(r'\s*[\(（]\s*[\)）]\s*三\s*、.*$', '', content.strip())
+            # 移除任何类型的题型标记
+            content = re.sub(r'\s+三\s*、\s*判断题.*$', '', content.strip())
+            # 移除末尾的易混、易错等标记
+            content = re.sub(r'\s*（易混）\s*$', '', content.strip()) 
+            content = re.sub(r'\s*（易错）\s*$', '', content.strip())
+            content = re.sub(r'\s*\(易混\)\s*$', '', content.strip())
+            content = re.sub(r'\s*\(易错\)\s*$', '', content.strip())
         
         # 构建题目内容
         formatted_question = f"题目:{content}\n类型:{data['type']}"
@@ -552,4 +606,4 @@ def extract_questions(section, question_type):
     return questions
 
 if __name__ == '__main__':
-    process_file('tm.txt', 'converted_questions.txt') 
+    process_file('tm3.txt', 'converted_questions.txt') 
